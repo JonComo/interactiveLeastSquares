@@ -5,6 +5,7 @@ let mouseX = 0;
 let mouseY = 0;
 let dragging = false;
 var point_idx = 0;
+var degree = 1;
 
 ctx.fillStyle = "black";
 canvas.width = window.innerWidth;
@@ -14,17 +15,36 @@ document.getElementsByClassName("body").style = "body { margin: 0 }";
 const dot = math.multiply;
 const T = math.transpose;
 
-var points = math.matrix([[1, 1], [5, 5], [10, 10]]) // Matrix
+function generate_matrix() {
+    var m = [];
+    for (let i = 0; i < 9; i++) {
+        m.push([50 + i*50, 50 + 50*math.sin(i)]);
+    }
+    return math.matrix(m);
+}
 
+var points = generate_matrix();
 
 function p(i) {
     return math.subset(points, math.index(i, [0, 1]))._data[0];
 }
 
+function model(x, params) {
+    var y = 0;
+    for (let j = 0; j <= degree; j++) {
+        y += params[j] * math.pow(x, j);
+    }
+    return y;
+}
+
 function genA() {
     var a = [];
     iter_points(function(i, p) {
-        a.push([p[0], 1]);
+        var pwrs = [];
+        for (let j = 0; j <= degree; j++) {
+            pwrs.push(math.pow(tom(p[0]), j));
+        }
+        a.push(pwrs);
     });
     return math.matrix(a);
 }
@@ -32,7 +52,7 @@ function genA() {
 function genb() {
     var b = [];
     iter_points(function(i, p) {
-        b.push([p[1]]);
+        b.push([tom(p[1])]);
     });
     return math.matrix(b);
 }
@@ -46,14 +66,17 @@ function least_squares() {
 function draw_solution() {
     let sol = least_squares();
 
-    let m = sol[0][0];
-    let b = sol[1][0];
+    var params = [];
+    for (let i = 0; i <= degree; i ++) {
+        params.push(sol[i][0]);
+    }
 
     ctx.beginPath();
     var x = 0;
-    ctx.moveTo(x, m*x + b);
-    x = canvas.width;
-    ctx.lineTo(x, math.round(m*x + b));
+    ctx.moveTo(x, tos(model(tom(x), params)));
+    for (x = 0; x < canvas.width; x += 5) {
+        ctx.lineTo(x, tos(model(tom(x), params)));
+    }
     ctx.stroke();
 }
 
@@ -66,8 +89,6 @@ function draw_points() {
     iter_points(function(i, point) {
         ctx.fillRect(point[0], point[1], 4, 4);
     });
-
-    draw_solution();
 }
 
 function update_point(i, x, y) {
@@ -110,8 +131,9 @@ window.onmousemove = function(event) {
     update_mouse(event);
     if (dragging && point_idx >= 0) {
         this.update_point(point_idx, mouseX, mouseY);
+        draw_points();
+        this.draw_solution();
     }
-    draw_points();
 }
 
 window.onresize = function() {
@@ -129,3 +151,27 @@ window.onmouseup = function() {
     update_mouse(event);
     dragging = false;
 }
+
+document.getElementById("sliderDegree").oninput = function(evt) {
+    let d = evt.target.value;
+    degree = d;
+    document.getElementById("title").innerText = "Interactive Least Squares: Polynomial of degree " + d + ".";
+    update();
+}
+
+// Converts point to math space (smaller numbers)
+function tom(x) {
+    return x / 1;
+}
+
+// Converts point to screen space
+function tos(x) {
+    return x * 1;
+}
+
+function update() {
+    draw_points();
+    draw_solution();
+}
+
+update();
