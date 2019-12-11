@@ -17,8 +17,9 @@ const T = math.transpose;
 
 function generate_matrix() {
     var m = [];
-    for (let i = 0; i < 9; i++) {
-        m.push([50 + i*50, 50 + 50*math.sin(i)]);
+    let dx = canvas.width/30;
+    for (let i = 0; i < 20; i++) {
+        m.push([50 + i*dx, 50 + dx*math.sin(i)]);
     }
     return math.matrix(m);
 }
@@ -139,6 +140,7 @@ window.onmousemove = function(event) {
 window.onresize = function() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    this.update();
 }
 
 window.onmousedown = function() {
