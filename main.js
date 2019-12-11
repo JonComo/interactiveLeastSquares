@@ -1,11 +1,13 @@
 
 let canvas = this.document.getElementById("canvas");
+canvas.style = "border-style: solid;";
 let ctx = canvas.getContext('2d');
 let mouseX = 0;
 let mouseY = 0;
 let dragging = false;
 var point_idx = 0;
 var degree = 1;
+var num_pts = 20;
 
 ctx.fillStyle = "black";
 canvas.width = window.innerWidth;
@@ -18,8 +20,8 @@ const T = math.transpose;
 function generate_matrix() {
     var m = [];
     let dx = canvas.width/30;
-    for (let i = 0; i < 20; i++) {
-        m.push([50 + i*dx, 50 + dx*math.sin(i)]);
+    for (let i = 0; i < num_pts; i++) {
+        m.push([100 + i*dx, 100 + dx*math.sin(i)]);
     }
     return math.matrix(m);
 }
@@ -157,7 +159,12 @@ window.onmouseup = function() {
 document.getElementById("sliderDegree").oninput = function(evt) {
     let d = evt.target.value;
     degree = d;
-    document.getElementById("title").innerText = "Interactive Least Squares: Polynomial of degree " + d + ".";
+    update();
+}
+
+document.getElementById("sliderPoints").oninput = function(evt) {
+    num_pts = evt.target.value;
+    points = generate_matrix();
     update();
 }
 
@@ -172,6 +179,7 @@ function tos(x) {
 }
 
 function update() {
+    document.getElementById("title").innerText = "Interactive Least Squares: Polynomial of degree " + degree + " fitting " + num_pts + " point(s).";
     draw_points();
     draw_solution();
 }
